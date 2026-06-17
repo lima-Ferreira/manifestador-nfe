@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload de Arquivos</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <h1>Fazer Uploads dos Arquivos</h1>
+    </header>
+    <style>
+      /* CSS do fundo escurecido e do círculo de progresso */
+      .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+        font-family: Arial, sans-serif;
+      }
+
+      .spinner-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+      }
+
+      .spinner-circle {
+        width: 100%;
+        height: 100%;
+        border: 10px solid #f3f3f3;
+        border-top: 10px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .spinner-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-msg {
+        margin-top: 15px;
+        font-size: 18px;
+        font-weight: 500;
+      }
+    </style>
+
+    <!-- Adicione esta estrutura da animação logo aqui, antes do <main> -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner-container">
+        <div class="spinner-circle"></div>
+        <div id="progressText" class="spinner-text">0%</div>
+      </div>
+      <div class="loading-msg">Processando arquivos no servidor...</div>
+    </div>
+    <main class="main">
+      <section class="upload-section">
+        <h1>Comparar Chaves de Acesso</h1>
+        <form id="uploadForm">
+          <div class="input-group">
+            <label for="excelFile">Arquivo Excel:</label>
+            <input
+              type="file"
+              name="excelFile"
+              id="excelFile"
+              accept=".xls,.xlsx,.csv,.txt"
+              required=""
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="pdfFile">Arquivo PDF:</label>
+            <input
+              type="file"
+              name="pdfFile"
+              id="pdfFile"
+              accept=".pdf"
+              required
+            />
+          </div>
+
+          <button type="submit" id="submitBtn">Enviar e Comparar</button>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const backendUrl = ""; // Mantido dinâmico para rodar local e no Render
+
+      console.log("Backend URL atual:", backendUrl);
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const overlay = document.getElementById("loadingOverlay");
+          const progressText = document.getElementById("progressText");
+          const submitBtn = document.getElementById("submitBtn");
+          const formData = new FormData(e.target);
+
+          // Exibe a tela de carregamento e desativa o botão
+          overlay.style.display = "flex";
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = "0.5";
+
+          // Simulação inteligente de progresso enquanto espera a rede do Render responder
+          let progresso = 0;
+          const timerProgress = setInterval(() => {
+            if (progresso < 90) {
+              progresso += Math.floor(Math.random() * 10) + 1;
+              if (progresso > 90) progresso = 90; // Trava em 90% até o backend responder de fato
+              progressText.innerText = progresso + "%";
+            }
+          }, 400);
+
+          try {
+            const res = await fetch(`${backendUrl}/api/upload`, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!res.ok) throw new Error("Erro no upload");
+
+            const data = await res.json();
+
+            console.log("RESPOSTA BACKEND:", data);
+
+            localStorage.setItem("resultadoComparacao", JSON.stringify(data));
+
+            console.log(
+              "SALVO NO LOCALSTORAGE:",
+              localStorage.getItem("resultadoComparacao"),
+            );
+
+            // Pequeno delay visual para o usuário ver o 100%
+            setTimeout(() => {
+              window.location.href = "nfe.html";
+            }, 500);
+          } catch (err) {
+            clearInterval(timerProgress);
+            overlay.style.display = "none";
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = "1";
+            alert("Erro ao processar arquivos: " + err.message);
+          }
+        });
+    </script>
+  </body>
+</html>

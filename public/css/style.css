@@ -1,0 +1,260 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilo global */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  padding-top: 80px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #003366;
+  color: white;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  text-align: center;
+}
+
+/* Container centralizado */
+/* Centralização real */
+.filtro-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+/* Caixa do filtro */
+.filtro-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 500px;
+  max-width: 95%;
+
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+
+  padding: 10px 15px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Ícone */
+.filtro-box i {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Input */
+#filtroInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+}
+
+/* Foco bonito */
+.filtro-box:focus-within {
+  border-color: #0d6efd;
+  box-shadow: 0 0 6px rgba(13, 110, 253, 0.2);
+}
+
+header h1 {
+  margin: 0 auto;
+}
+
+.back-link:hover {
+  color: #ccc;
+}
+
+.h1-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.download-link {
+  display: flex;
+  justify-content: end;
+}
+
+.header-links {
+  width: 120px;
+}
+
+.header-links a {
+  align-content: center;
+  text-decoration: none;
+  color: #fff;
+  margin: 0 auto;
+}
+
+.header-links a:hover {
+  color: #ddd;
+}
+
+.back-link {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: #ccc;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-list a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Conteúdo principal */
+.main {
+  padding: 2rem;
+  width: 100vw;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Formulário de upload */
+.upload-section {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.upload-section h1 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.input-group input[type="file"] {
+  padding: 0.5rem;
+  width: 100%;
+}
+
+button[type="submit"] {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Tabela de resultados */
+.results {
+  width: 100vw;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.results h1 {
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.table {
+  margin: 0 auto;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.linha-cancelada {
+  background-color: #ffdddd;
+  color: #a10000;
+  font-weight: bold;
+}
+
+.table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Mensagem de nenhum dado */
+.results p {
+  font-style: italic;
+  color: #666;
+}
+
+.linha-pendente {
+  background-color: #fff3cd;
+}
+
+.linha-recebida {
+  background-color: #d4edda;
+}
+
+.linha-pendente:hover,
+.linha-recebida:hover {
+  filter: brightness(0.98);
+}

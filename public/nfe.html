@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cloudflare.com" />
+    <title>Resultado da Comparação</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> Voltar para Upload
+      </a>
+      <h1>Notas Fiscais Faltando nas Entradas</h1>
+      <div id="download-link-container"></div>
+    </header>
+
+    <main class="main">
+      <section class="results" style="width: 100%">
+        <div class="filtro-container">
+          <i class="fas fa-search"></i>
+          <div class="filtro-box">
+            <input
+              type="text"
+              id="filtroInput"
+              placeholder="Buscar por número da nota ou fornecedor..."
+            />
+          </div>
+        </div>
+
+        <div id="results-container"></div>
+        <div id="resumo-container"></div>
+      </section>
+    </main>
+
+    <script>
+      const backendUrl = "";
+      alert("NFE.HTML NOVO CARREGADO");
+
+      console.log(
+        "resultadoComparacao:",
+        localStorage.getItem("resultadoComparacao"),
+      );
+      console.log("chavesFaltando:", localStorage.getItem("chavesFaltando"));
+
+      const resultado = JSON.parse(
+        localStorage.getItem("resultadoComparacao") || "{}",
+      );
+
+      const notas = resultado.notas || [];
+      const resumo = resultado.resumo || {};
+
+      console.log("TOTAL NOTAS:", notas.length);
+      console.log("RESUMO:", resumo);
+
+      const resultsContainer = document.getElementById("results-container");
+      const downloadContainer = document.getElementById(
+        "download-link-container",
+      );
+
+      const resumoContainer = document.getElementById("resumo-container");
+
+      resumoContainer.innerHTML = `
+  <div style="
+    display:flex;
+    gap:20px;
+    margin:20px 0;
+    font-weight:bold;
+    font-size:18px;
+  ">
+    <span>Total: ${resumo.total || 0}</span>
+    <span>Recebidas: ${resumo.recebidas || 0}</span>
+    <span>Pendentes: ${resumo.pendentes || 0}</span>
+  </div>
+`;
+
+      // Padroniza qualquer data do SIGA para DD/MM/AAAA
+      function padronizarData(dataStr) {
+        if (!dataStr) return "";
+
+        const partes = dataStr.trim().split("/");
+        if (partes.length !== 3) return dataStr;
+
+        let [dia, mes, ano] = partes;
+
+        dia = dia.padStart(2, "0");
+        mes = mes.padStart(2, "0");
+
+        if (ano.length === 2) {
+          ano = "20" + ano;
+        }
+
+        return `${dia}/${mes}/${ano}`;
+      }
+
+      // Converte DD/MM/AAAA para AAAA-MM-DD para permitir ordenação lógica
+      function converterParaOrdenacao(dataStr) {
+        const dataPadrao = padronizarData(dataStr);
+        const [dia, mes, ano] = dataPadrao.split("/");
+        return `${ano}-${mes}-${dia}`;
+      }
+
+      if (notas.length > 0 && resultsContainer) {
+        // Pendentes primeiro, depois recebidas
+        const notasOrdenadas = [...notas].sort((a, b) => {
+          if (a.recebida === b.recebida) {
+            const itemA = converterParaOrdenacao(a.dataTempo);
+            const itemB = converterParaOrdenacao(b.dataTempo);
+            return itemA.localeCompare(itemB);
+          }
+
+          return a.recebida ? 1 : -1;
+        });
+
+        let tableHTML = `
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th>UF</th>
+                    <th>Documento</th>
+                    <th>Chave</th>
+                    <th>Fornecedor</th>
+                    <th>Situação</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+        notasOrdenadas.forEach((item) => {
+          const dataFormatada = padronizarData(item.dataTempo);
+
+          const status = item.recebida ? "✅ RECEBIDA" : "⚠️ PENDENTE";
+
+          const classeLinha = item.recebida
+            ? "linha-recebida"
+            : "linha-pendente";
+
+          tableHTML += `
+            <tr class="${classeLinha}">
+                <td><strong>${status}</strong></td>
+                <td>${dataFormatada}</td>
+                <td>${item.uf || ""}</td>
+                <td>${item.numDoc || ""}</td>
+                <td>${item.chave || ""}</td>
+                <td>${item.fornecedor || ""}</td>
+                <td>${item.autorizacao || ""}</td>
+                <td>${item.valorDoDoc || ""}</td>
+            </tr>
+        `;
+        });
+
+        tableHTML += `
+            </tbody>
+        </table>
+    `;
+
+        resultsContainer.innerHTML = tableHTML;
+
+        // FILTRO
+        const filtroInput = document.getElementById("filtroInput");
+
+        if (filtroInput) {
+          filtroInput.addEventListener("keyup", function () {
+            const filtro = this.value.toLowerCase();
+
+            const linhas = document.querySelectorAll("table tbody tr");
+
+            linhas.forEach((linha) => {
+              const numeroNota = linha.children[3].innerText.toLowerCase();
+              const fornecedor = linha.children[5].innerText.toLowerCase();
+
+              if (numeroNota.includes(filtro) || fornecedor.includes(filtro)) {
+                linha.style.display = "";
+              } else {
+                linha.style.display = "none";
+              }
+            });
+          });
+        }
+
+        // DOWNLOAD EXCEL
+        if (downloadContainer) {
+          const downloadBtn = document.createElement("button");
+
+          downloadBtn.classList.add("download-link");
+
+          downloadBtn.innerHTML = `<i class="fas fa-download"></i> Baixar Excel`;
+
+          downloadBtn.onclick = async () => {
+            try {
+              const notasFormatadas = notas.map((item) => ({
+                ...item,
+                dataTempo: padronizarData(item.dataTempo),
+              }));
+
+              const response = await fetch(`${backendUrl}/api/download-excel`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  chavesFaltando: notasFormatadas,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error("Erro ao gerar Excel.");
+              }
+
+              const blob = await response.blob();
+
+              const url = URL.createObjectURL(blob);
+
+              const a = document.createElement("a");
+
+              a.href = url;
+
+              a.download = "notas_comparadas.xlsx";
+
+              document.body.appendChild(a);
+
+              a.click();
+
+              a.remove();
+
+              URL.revokeObjectURL(url);
+            } catch (err) {
+              alert(err.message);
+
+              console.error(err);
+            }
+          };
+
+          downloadContainer.appendChild(downloadBtn);
+        }
+      } else if (resultsContainer) {
+        resultsContainer.innerHTML =
+          "<p>Nenhuma diferença encontrada. Todas as chaves do Excel estão no PDF.</p>";
+      }
+    </script>
+  </body>
+</html>
