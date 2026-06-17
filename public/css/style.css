@@ -258,3 +258,113 @@ button[type="submit"]:hover {
 .linha-recebida:hover {
   filter: brightness(0.98);
 }
+
+.linha-recebida {
+  background: #d4edda;
+}
+
+.linha-pendente {
+  background: #f8d7da;
+}
+
+#filtros-status button {
+  padding: 8px 15px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+#btnTodas {
+  background: #007bff;
+  color: white;
+}
+
+#btnRecebidas {
+  background: #28a745;
+  color: white;
+}
+
+#btnPendentes {
+  background: #dc3545;
+  color: white;
+}
+
+.cards-resumo {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.card-resumo {
+  padding: 15px;
+  border-radius: 8px;
+  min-width: 150px;
+  text-align: center;
+  color: #fff;
+}
+
+.total {
+  background: #34495e;
+}
+
+.recebidas {
+  background: #27ae60;
+}
+
+.pendentes {
+  background: #e67e22;
+}
+
+#acoes-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+#acoes-container button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.toolbar input {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.acoes button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#btnManifestar {
+  background: #6f42c1;
+  color: white;
+}
+
+#btnManifestar:hover {
+  opacity: 0.9;
+}
