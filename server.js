@@ -9,15 +9,16 @@ import { fileURLToPath } from "url";
 
 const app = express();
 // Libera o acesso para o front local e para o front do GitHub Pages
-app.use(cors({
-  origin: "*", 
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  }),
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 app.use(express.json());
 
@@ -39,34 +40,32 @@ app.post(
         return res.status(400).json({ error: "Envie Excel e PDF." });
       }
 
- const arrExcel = extractExcelData(excelFile.path);
-const arrPdf = await extractPdfChavesAsync(pdfFile.path);
+      const arrExcel = extractExcelData(excelFile.path);
+      const arrPdf = await extractPdfChavesAsync(pdfFile.path);
 
-// Marca quais notas já foram recebidas
-const notas = arrExcel.map(item => ({
-  ...item,
-  recebida: arrPdf.includes(item.chave)
-}));
+      // Marca quais notas já foram recebidas
+      const notas = arrExcel.map((item) => ({
+        ...item,
+        recebida: arrPdf.includes(item.chave),
+      }));
 
-// Resumo para exibir no topo da tela
-const resumo = {
-  total: notas.length,
-  recebidas: notas.filter(n => n.recebida).length,
-  pendentes: notas.filter(n => !n.recebida).length
-};
+      // Resumo para exibir no topo da tela
+      const resumo = {
+        total: notas.length,
+        recebidas: notas.filter((n) => n.recebida).length,
+        pendentes: notas.filter((n) => !n.recebida).length,
+      };
 
-res.json({
-  notas,
-  resumo
-});
-
+      res.json({
+        notas,
+        resumo,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Erro ao processar arquivos." });
     }
-  }
+  },
 );
-
 
 // Rota para download do Excel direto no navegador
 app.post("/api/download-excel", async (req, res) => {
@@ -105,11 +104,11 @@ app.post("/api/download-excel", async (req, res) => {
 
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="chaves_faltando.xlsx"'
+      'attachment; filename="chaves_faltando.xlsx"',
     );
 
     await workbook.xlsx.write(res);
@@ -117,6 +116,48 @@ app.post("/api/download-excel", async (req, res) => {
   } catch (err) {
     console.error("Erro ao gerar Excel:", err);
     res.status(500).json({ error: "Erro ao gerar Excel." });
+  }
+});
+
+// Rota de manifestação
+app.post("/api/manifestar", async (req, res) => {
+  try {
+    const { evento, chaves } = req.body;
+
+    if (!evento) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Evento não informado.",
+      });
+    }
+
+    if (!Array.isArray(chaves) || chaves.length === 0) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Nenhuma chave selecionada.",
+      });
+    }
+
+    console.log("=================================");
+    console.log("MANIFESTAÇÃO RECEBIDA");
+    console.log("Evento:", evento);
+    console.log("Quantidade:", chaves.length);
+    console.table(chaves);
+    console.log("=================================");
+
+    res.json({
+      sucesso: true,
+      evento,
+      quantidade: chaves.length,
+      mensagem: `${chaves.length} notas recebidas para manifestação.`,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      sucesso: false,
+      erro: error.message,
+    });
   }
 });
 

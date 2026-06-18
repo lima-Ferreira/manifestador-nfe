@@ -369,7 +369,7 @@
 
       document
         .getElementById("btnConfirmarModal")
-        .addEventListener("click", () => {
+        .addEventListener("click", async () => {
           const evento = document.querySelector('input[name="evento"]:checked');
 
           if (!evento) {
@@ -377,11 +377,32 @@
             return;
           }
 
-          console.log("Evento:", evento.value);
+          try {
+            const response = await fetch(`${backendUrl}/api/manifestar`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                evento: evento.value,
+                chaves: window.chavesSelecionadas,
+              }),
+            });
 
-          console.table(window.chavesSelecionadas);
+            const resultado = await response.json();
 
-          document.getElementById("modalManifestacao").style.display = "none";
+            if (!response.ok) {
+              throw new Error(resultado.erro);
+            }
+
+            alert(resultado.mensagem);
+
+            document.getElementById("modalManifestacao").style.display = "none";
+          } catch (err) {
+            console.error(err);
+
+            alert("Erro: " + err.message);
+          }
         });
     </script>
   </body>
