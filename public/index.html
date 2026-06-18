@@ -148,14 +148,7 @@
 
             const data = await res.json();
 
-            console.log("RESPOSTA BACKEND:", data);
-
             localStorage.setItem("resultadoComparacao", JSON.stringify(data));
-
-            console.log(
-              "SALVO NO LOCALSTORAGE:",
-              localStorage.getItem("resultadoComparacao"),
-            );
 
             // Pequeno delay visual para o usuário ver o 100%
             setTimeout(() => {

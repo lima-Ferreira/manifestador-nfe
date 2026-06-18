@@ -39,6 +39,41 @@
       </section>
     </main>
 
+    <div id="modalManifestacao" class="modal">
+      <div class="modal-content">
+        <h2>Manifestar Notas</h2>
+
+        <p id="quantidadeSelecionadas"></p>
+
+        <div class="eventos">
+          <label>
+            <input type="radio" name="evento" value="ciencia" />
+            Ciência da Operação
+          </label>
+
+          <label>
+            <input type="radio" name="evento" value="confirmacao" />
+            Confirmação da Operação
+          </label>
+
+          <label>
+            <input type="radio" name="evento" value="desconhecimento" />
+            Desconhecimento da Operação
+          </label>
+
+          <label>
+            <input type="radio" name="evento" value="nao_realizada" />
+            Operação Não Realizada
+          </label>
+        </div>
+
+        <div class="modal-botoes">
+          <button id="btnCancelarModal">Cancelar</button>
+          <button id="btnConfirmarModal">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       const backendUrl = "";
 
@@ -46,7 +81,6 @@
         "resultadoComparacao:",
         localStorage.getItem("resultadoComparacao"),
       );
-      console.log("chavesFaltando:", localStorage.getItem("chavesFaltando"));
 
       const resultado = JSON.parse(
         localStorage.getItem("resultadoComparacao") || "{}",
@@ -254,11 +288,17 @@
                 selecionadas.push(checkbox.dataset.chave);
               });
 
-            console.log("NOTAS SELECIONADAS:");
+            if (selecionadas.length === 0) {
+              alert("Selecione pelo menos uma nota.");
+              return;
+            }
 
-            console.table(selecionadas);
+            window.chavesSelecionadas = selecionadas;
 
-            alert(`${selecionadas.length} notas selecionadas`);
+            document.getElementById("quantidadeSelecionadas").textContent =
+              `${selecionadas.length} notas selecionadas`;
+
+            document.getElementById("modalManifestacao").style.display = "flex";
           });
 
         // DOWNLOAD EXCEL
@@ -320,6 +360,29 @@
         resultsContainer.innerHTML =
           "<p>Nenhuma diferença encontrada. Todas as chaves do Excel estão no PDF.</p>";
       }
+
+      document
+        .getElementById("btnCancelarModal")
+        .addEventListener("click", () => {
+          document.getElementById("modalManifestacao").style.display = "none";
+        });
+
+      document
+        .getElementById("btnConfirmarModal")
+        .addEventListener("click", () => {
+          const evento = document.querySelector('input[name="evento"]:checked');
+
+          if (!evento) {
+            alert("Selecione um evento.");
+            return;
+          }
+
+          console.log("Evento:", evento.value);
+
+          console.table(window.chavesSelecionadas);
+
+          document.getElementById("modalManifestacao").style.display = "none";
+        });
     </script>
   </body>
 </html>
