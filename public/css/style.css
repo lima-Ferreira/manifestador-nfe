@@ -1,379 +1,366 @@
-/* Reset básico */
+/* ==========================================================================
+   1. RESET BÁSICO, FONTES E CONFIGURAÇÕES GLOBAIS (LEVE & CLEAN)
+   ========================================================================== */
+@import url("https://googleapis.com");
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Estilo global */
 body {
-  font-family: "Segoe UI", sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
-  padding-top: 80px;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background-color: #f8fafc; /* Tom off-white levemente azulado, muito mais suave */
+  color: #334155; /* Cinza escuro elegante em vez de preto puro */
+  padding-top: 70px; /* Reduzido para um header mais discreto */
+  height: 100vh;
+  overflow: hidden;
 }
 
+/* ==========================================================================
+   2. HEADER MINIMALISTA
+   ========================================================================== */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #003366;
-  color: white;
-  padding: 20px;
+  background-color: #ffffff;
+  padding: 15px 30px;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
-  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* Container centralizado */
-/* Centralização real */
+/* O título não fica mais centralizado à força, ele segue o fluxo natural */
+header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0; /* Remove o margin: 0 auto anterior */
+}
+
+/* Botão padrão no estilo de "Breadcrumb" (Caminho de navegação) */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* Espaço entre a seta e o texto */
+  color: #64748b;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.back-link i {
+  font-size: 0.85rem;
+}
+
+/* Efeito discreto de botão ao passar o mouse */
+.back-link:hover {
+  color: #1e293b;
+  background-color: #f1f5f9;
+}
+
+/* ==========================================================================
+   3. ESTRUTURA DO LAYOUT FIXO (MAIN, RESULTS E CONTAINERS)
+   ========================================================================== */
+.main {
+  padding: 1.5rem 2rem;
+  width: 100vw;
+  height: calc(100vh - 70px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.results {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px; /* Cantos levemente mais arredondados e modernos */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#results-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   4. CENTRALIZAÇÃO E DESIGN DA BARRA DE PESQUISA (TOOLBAR)
+   ========================================================================== */
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
 .filtro-container {
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  margin: 0;
 }
 
-/* Caixa do filtro */
 .filtro-box {
   display: flex;
   align-items: center;
   gap: 10px;
-
-  width: 500px;
-  max-width: 95%;
-
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-
-  padding: 10px 15px;
-
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 480px;
+  background: #f1f5f9; /* Fundo cinza bem claro para o input */
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin: 0 auto;
+  transition: all 0.2s ease;
 }
 
-/* Ícone */
-.filtro-box i {
-  color: #999;
-  font-size: 14px;
-}
-
-/* Input */
 #filtroInput {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 0.9rem;
   background: transparent;
+  color: #334155;
 }
 
-/* Foco bonito */
+#filtroInput::placeholder {
+  color: #94a3b8;
+}
+
 .filtro-box:focus-within {
-  border-color: #0d6efd;
-  box-shadow: 0 0 6px rgba(13, 110, 253, 0.2);
+  border-color: #cbd5e1;
+  background: #ffffff; /* Fica branco puro ao focar */
+  box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.4);
 }
 
-header h1 {
-  margin: 0 auto;
-}
-
-.back-link:hover {
-  color: #ccc;
-}
-
-.h1-header {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.download-link {
-  display: flex;
-  justify-content: end;
-}
-
-.header-links {
-  width: 120px;
-}
-
-.header-links a {
-  align-content: center;
-  text-decoration: none;
-  color: #fff;
-  margin: 0 auto;
-}
-
-.header-links a:hover {
-  color: #ddd;
-}
-
-.back-link {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.back-link:hover {
-  color: #ccc;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-}
-
-.nav-list {
-  list-style: none;
-  display: flex;
-  gap: 1rem;
-}
-
-.nav-list a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-/* Conteúdo principal */
-.main {
-  padding: 2rem;
-  width: 100vw;
-  margin: 0 auto;
-}
-
-h1 {
-  text-align: center;
-}
-
-/* Formulário de upload */
-.upload-section {
-  background-color: white;
-  padding: 2rem;
+/* ==========================================================================
+   5. CONTROLE DE SCROLL ISOLADO E TABELA SUAVE
+   ========================================================================== */
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.upload-section h1 {
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-}
-
-.input-group {
-  margin-bottom: 1.5rem;
-}
-
-.input-group label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.input-group input[type="file"] {
-  padding: 0.5rem;
-  width: 100%;
-}
-
-button[type="submit"] {
-  background-color: #007bff;
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-button[type="submit"]:hover {
-  background-color: #0056b3;
-}
-
-/* Tabela de resultados */
-.results {
-  width: 100vw;
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.results h1 {
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
 }
 
 .table {
-  margin: 0 auto;
+  width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
 }
 
 .table th,
 .table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
+  border-bottom: 1px solid #e2e8f0; /* Apenas linhas horizontais, estilo moderno */
+  padding: 0.75rem 1rem;
   text-align: left;
   font-size: 0.85rem;
-}
-
-.linha-cancelada {
-  background-color: #ffdddd;
-  color: #a10000;
-  font-weight: bold;
+  color: #475569;
 }
 
 .table th {
-  background-color: #f0f0f0;
-  font-weight: bold;
-  font-size: 1rem;
+  background-color: #f8fafc; /* Cabeçalho sutil */
+  color: #64748b; /* Texto dos títulos mais leve */
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase; /* Dá um tom corporativo leve */
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: inset 0 -1px 0 #e2e8f0;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
 }
 
 .table tr:nth-child(even) {
-  background-color: #fafafa;
+  background-color: #fdfefe; /* Alternância quase imperceptível para leitura */
 }
 
-/* Mensagem de nenhum dado */
-.results p {
-  font-style: italic;
-  color: #666;
+/* Status das Linhas: Tons Pastéis e Opacos (Sem agredir a vista) */
+.linha-recebida {
+  background-color: #f0fdf4 !important; /* Verde pastel bem clarinho */
+  color: #166534;
 }
 
 .linha-pendente {
-  background-color: #fff3cd;
+  background-color: #fffbeb !important; /* Amarelo/Laranja pastel bem clarinho */
+  color: #92400e;
 }
 
-.linha-recebida {
-  background-color: #d4edda;
+.linha-cancelada {
+  background-color: #fef2f2;
+  color: #991b1b;
+  font-weight: 500;
 }
 
 .linha-pendente:hover,
 .linha-recebida:hover {
-  filter: brightness(0.98);
+  filter: brightness(0.97); /* Feedback visual sutil ao passar o mouse */
 }
 
-.linha-recebida {
-  background: #d4edda;
-}
-
-.linha-pendente {
-  background: #f8d7da;
-}
-
-#filtros-status button {
-  padding: 8px 15px;
-  cursor: pointer;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-}
-
-#btnTodas {
-  background: #007bff;
-  color: white;
-}
-
-#btnRecebidas {
-  background: #28a745;
-  color: white;
-}
-
-#btnPendentes {
-  background: #dc3545;
-  color: white;
-}
-
+/* ==========================================================================
+   6. CARDS DE RESUMO EM CORES SUTIS
+   ========================================================================== */
 .cards-resumo {
   display: flex;
   gap: 15px;
-  margin: 20px 0;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .card-resumo {
-  padding: 15px;
+  padding: 12px 20px;
   border-radius: 8px;
-  min-width: 150px;
-  text-align: center;
-  color: #fff;
+  min-width: 140px;
+  text-align: left; /* Alinhamento para a esquerda melhora a estética */
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
 }
 
-.total {
-  background: #34495e;
+.card-resumo span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
 }
 
-.recebidas {
-  background: #27ae60;
+.card-resumo strong {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 2px;
 }
 
-.pendentes {
-  background: #e67e22;
+/* Bordas coloridas sutis no topo de cada card para identificação rápida */
+.card-resumo.total {
+  border-top: 4px solid #64748b;
+}
+.card-resumo.recebidas {
+  border-top: 4px solid #22c55e;
+}
+.card-resumo.pendentes {
+  border-top: 4px solid #f59e0b;
 }
 
-#acoes-container {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-#acoes-container button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.toolbar input {
-  width: 100%;
-  max-width: 600px;
-  padding: 10px;
-}
-
+/* ==========================================================================
+   7. BOTÕES DE AÇÕES (PADRÃO CLEAN)
+   ========================================================================== */
 .acoes {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .acoes button {
-  padding: 10px 15px;
-  border: none;
+  padding: 8px 14px;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 500;
+  font-size: 0.85rem;
+  background: #ffffff;
+  color: #475569;
+  transition: all 0.2s ease;
 }
 
+#btnTodas {
+  background-color: #2a7050 !important;
+  color: #fff;
+}
+
+#btnRecebidas {
+  background-color: #f0fdf4 !important;
+}
+
+#btnPendentes {
+  background-color: #fffbeb !important;
+}
+
+.acoes button:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Destaque sutil para o botão de ação principal */
 #btnManifestar {
-  background: #6f42c1;
-  color: white;
+  background: #4f46e5; /* Azul índigo moderno */
+  color: #ffffff;
+  border: none;
 }
 
 #btnManifestar:hover {
-  opacity: 0.9;
+  background: #4338ca;
+  opacity: 1;
 }
 
+/* Botão de Excel lateral */
+.download-link {
+  background-color: #22c55e; /* Verde corporativo leve */
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+}
+
+.download-link:hover {
+  background-color: #16a34a;
+}
+
+.results p {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   8. JANELA MODAL MODERNA
+   ========================================================================== */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.3); /* Overlay escuro azulado bem suave */
+  backdrop-filter: blur(4px); /* Efeito blur de fundo premium */
   justify-content: center;
   align-items: center;
   z-index: 9999;
@@ -381,30 +368,67 @@ button[type="submit"]:hover {
 
 .modal-content {
   background: #fff;
-  width: 450px;
+  width: 440px;
   max-width: 90%;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 25px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
 .modal-content h2 {
-  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 10px;
 }
 
 .eventos {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin: 20px 0;
+}
+
+.eventos label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #475569;
+  cursor: pointer;
+  padding: 6px 0;
 }
 
 .modal-botoes {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .modal-botoes button {
-  padding: 10px 15px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
+  border: 1px solid #e2e8f0;
+}
+
+#btnCancelarModal {
+  background: #ffffff;
+  color: #64748b;
+}
+#btnCancelarModal:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+#btnConfirmarModal {
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+}
+#btnConfirmarModal:hover {
+  background: #4338ca;
 }

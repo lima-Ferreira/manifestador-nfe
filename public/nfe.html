@@ -11,6 +11,7 @@
   <body>
     <header class="header">
       <a href="index.html" class="back-link">
+        <!-- Remova o texto longo e use apenas um ícone limpo com descrição se preferir -->
         <i class="fas fa-arrow-left"></i> Voltar para Upload
       </a>
       <h1>Notas Fiscais Faltando nas Entradas</h1>
@@ -20,7 +21,7 @@
     <main class="main">
       <section class="results">
         <div id="resumo-container"></div>
-
+        <div id="acoes-container" class="acoes"></div>
         <div class="toolbar">
           <div class="filtro-box">
             <input
@@ -29,8 +30,6 @@
               placeholder="Buscar por número da nota ou fornecedor..."
             />
           </div>
-
-          <div id="acoes-container" class="acoes"></div>
 
           <div id="download-link-container"></div>
         </div>
@@ -75,7 +74,7 @@
     </div>
 
     <script>
-      const backendUrl = "";
+      const backendUrl = "http://localhost:8080";
 
       console.log(
         "resultadoComparacao:",
@@ -159,73 +158,62 @@
             if (a.recebida === b.recebida) {
               const itemA = converterParaOrdenacao(a.dataTempo);
               const itemB = converterParaOrdenacao(b.dataTempo);
-
               return itemA.localeCompare(itemB);
             }
-
             return a.recebida ? 1 : -1;
           });
 
+          // ADICIONADO: Envelopando a tabela na div "table-container" para ativar o scroll do CSS
           let tableHTML = `
+    <div class="table-container">
       <table class="table">
         <thead>
          <tr>
-  <th>
-    <input type="checkbox" id="selecionarTodas">
-  </th>
-  <th>Status</th>
-  <th>Data</th>
-  <th>UF</th>
-  <th>Documento</th>
-  <th>Chave</th>
-  <th>Fornecedor</th>
-  <th>Situação</th>
-  <th>Valor</th>
-</tr>
+            <th><input type="checkbox" id="selecionarTodas"></th>
+            <th>Status</th>
+            <th>Data</th>
+            <th>UF</th>
+            <th>Documento</th>
+            <th>Chave</th>
+            <th>Fornecedor</th>
+            <th>Situação</th>
+            <th>Valor</th>
+          </tr>
         </thead>
         <tbody>
     `;
 
           notasOrdenadas.forEach((item) => {
             const dataFormatada = padronizarData(item.dataTempo);
-
             const status = item.recebida ? "✅ RECEBIDA" : "⚠️ PENDENTE";
-
             const classeLinha = item.recebida
               ? "linha-recebida"
               : "linha-pendente";
 
             tableHTML += `
-   <tr class="${classeLinha}">
-  <td>
-    <input
-      type="checkbox"
-      class="checkbox-nota"
-      data-chave="${item.chave}"
-    >
-  </td>
-
-  <td><strong>${status}</strong></td> 
-          <td>${dataFormatada}</td>
-          <td>${item.uf || ""}</td>
-          <td>${item.numDoc || ""}</td>
-          <td>${item.chave || ""}</td>
-          <td>${item.fornecedor || ""}</td>
-          <td>${item.autorizacao || ""}</td>
-          <td>${item.valorDoDoc || ""}</td>
-        </tr>
+         <tr class="${classeLinha}">
+            <td><input type="checkbox" class="checkbox-nota" data-chave="${item.chave}"></td>
+            <td><strong>${status}</strong></td> 
+            <td>${dataFormatada}</td>
+            <td>${item.uf || ""}</td>
+            <td>${item.numDoc || ""}</td>
+            <td>${item.chave || ""}</td>
+            <td>${item.fornecedor || ""}</td>
+            <td>${item.autorizacao || ""}</td>
+            <td>${item.valorDoDoc || ""}</td>
+          </tr>
       `;
           });
 
           tableHTML += `
         </tbody>
       </table>
+    </div>
     `;
 
           resultsContainer.innerHTML = tableHTML;
 
           const selecionarTodas = document.getElementById("selecionarTodas");
-
           if (selecionarTodas) {
             selecionarTodas.addEventListener("change", () => {
               document
@@ -241,32 +229,36 @@
 
         document.getElementById("btnTodas").addEventListener("click", () => {
           renderizarTabela(notas);
+          if (filtroInput) filtroInput.value = ""; // Limpa o filtro ao mudar de aba
         });
 
         document
           .getElementById("btnRecebidas")
           .addEventListener("click", () => {
             renderizarTabela(notas.filter((n) => n.recebida));
+            if (filtroInput) filtroInput.value = "";
           });
 
         document
           .getElementById("btnPendentes")
           .addEventListener("click", () => {
             renderizarTabela(notas.filter((n) => !n.recebida));
+            if (filtroInput) filtroInput.value = "";
           });
 
-        // FILTRO
+        // CORREÇÃO DO FILTRO: Mapeamento exato dos índices das colunas (children)
         const filtroInput = document.getElementById("filtroInput");
-
         if (filtroInput) {
-          filtroInput.addEventListener("keyup", function () {
+          filtroInput.addEventListener("input", function () {
+            // Mudado de 'keyup' para 'input' para capturar colas do mouse
             const filtro = this.value.toLowerCase();
-
             const linhas = document.querySelectorAll("table tbody tr");
 
             linhas.forEach((linha) => {
-              const numeroNota = linha.children[3].innerText.toLowerCase();
-              const fornecedor = linha.children[5].innerText.toLowerCase();
+              // Índices corretos baseados na estrutura de colunas atual da tabela:
+              // [0]=Checkbox, [1]=Status, [2]=Data, [3]=UF, [4]=Documento, [5]=Chave, [6]=Fornecedor
+              const numeroNota = linha.children[4].innerText.toLowerCase();
+              const fornecedor = linha.children[6].innerText.toLowerCase();
 
               if (numeroNota.includes(filtro) || fornecedor.includes(filtro)) {
                 linha.style.display = "";

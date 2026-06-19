@@ -13,102 +13,446 @@
     </header>
     <style>
       /* CSS do fundo escurecido e do círculo de progresso */
+      /* ==========================================================================
+   9. CUSTOMIZAÇÃO DA TELA DE UPLOAD (TEMA CLEAN / SaaS)
+/* ==========================================================================
+   9. CUSTOMIZAÇÃO PREMIUM DA TELA DE UPLOAD (INTERATIVA)
+   ========================================================================== */
+      .main-upload {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(100vh - 70px);
+        background-color: #f8fafc;
+      }
+
+      .upload-section {
+        background-color: #ffffff;
+        padding: 3rem 2.5rem;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.03),
+          0 10px 10px -5px rgba(0, 0, 0, 0.03);
+        width: 100%;
+        max-width: 480px;
+        text-align: center;
+      }
+
+      .upload-icon-header {
+        font-size: 2.2rem;
+        color: #4f46e5;
+        background: #f0fdf4;
+        width: 65px;
+        height: 65px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        margin: 0 auto 1.2rem auto;
+        box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.1);
+      }
+
+      .upload-section h1 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+      }
+
+      .upload-subtitle {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 5px;
+        margin-bottom: 2rem;
+        line-height: 1.4;
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+
+      .label-title {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      /* Esconde completamente o botão feio nativo do navegador */
+      .custom-dropzone input[type="file"] {
+        display: none;
+      }
+
+      /* Área interativa estilizada */
+      .custom-dropzone {
+        display: block;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 1.5rem 1rem;
+        background-color: #f8fafc;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .custom-dropzone:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+      }
+
+      /* Feedback visual de quando o arquivo é arrastado para cima ou selecionado */
+      .custom-dropzone.dragover,
+      .custom-dropzone.file-selected {
+        background-color: #eff6ff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      }
+
+      .dropzone-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none; /* Garante que eventos de drag funcionem na label */
+      }
+
+      .dropzone-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        transition: transform 0.2s ease;
+      }
+      .custom-dropzone:hover .dropzone-icon {
+        transform: translateY(-2px);
+      }
+
+      .icon-excel {
+        color: #16a34a;
+      }
+      .icon-pdf {
+        color: #dc2626;
+      }
+
+      .dropzone-text {
+        font-size: 0.85rem;
+        color: #475569;
+        font-weight: 500;
+      }
+
+      .dropzone-text .highlight {
+        color: #4f46e5;
+        text-decoration: underline;
+        font-weight: 600;
+      }
+
+      .label-desc {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+
+      /* Botão de Envio de Alto Padrão */
+      #submitBtn {
+        width: 100%;
+        background-color: #4f46e5;
+        border: none;
+        color: white;
+        padding: 0.85rem 1.5rem;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        margin-top: 1.5rem;
+      }
+
+      #submitBtn:hover {
+        background-color: #4338ca;
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+        transform: translateY(-1px);
+      }
+
+      #submitBtn i {
+        font-size: 0.85rem;
+        transition: transform 0.2s ease;
+      }
+      #submitBtn:hover i {
+        transform: translateX(3px);
+      }
+      /* ==========================================================================
+   10. TELA DE PROGRESSO PREMIUM (HORIZONTAL PROGRESS BAR)
+   ========================================================================== */
       .loading-overlay {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45); /* Escurecimento suave e moderno */
+        backdrop-filter: blur(8px); /* Efeito blur sofisticado de fundo */
         z-index: 9999;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
-        color: white;
-        font-family: Arial, sans-serif;
       }
 
-      .spinner-container {
-        position: relative;
-        width: 100px;
-        height: 100px;
-      }
-
-      .spinner-circle {
+      /* Painel flutuante onde o progresso acontece */
+      .progress-card {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 16px;
         width: 100%;
-        height: 100%;
-        border: 10px solid #f3f3f3;
-        border-top: 10px solid #3498db;
+        max-width: 420px;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+        border: 1px solid #e2e8f0;
+      }
+
+      /* Ícone animado em pulso sutil */
+      .progress-card-icon {
+        font-size: 2rem;
+        color: #4f46e5;
+        background: #eeebff;
+        width: 60px;
+        height: 60px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        margin-bottom: 1.25rem;
+        animation: pulse-sutil 2s infinite ease-in-out;
       }
 
-      .spinner-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 16px;
-        font-weight: bold;
+      .progress-card h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #0f172a;
       }
 
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+      /* Container da Barra Física */
+      .progress-bar-wrapper {
+        background-color: #f1f5f9;
+        border-radius: 100px;
+        height: 8px;
+        width: 100%;
+        margin: 1.5rem 0 0.75rem 0;
+        overflow: hidden; /* Garante os cantos arredondados na barra interna */
+      }
+
+      /* A barra de cor que vai expandindo */
+      .progress-bar-fill {
+        background: linear-gradient(90deg, #4f46e5, #6366f1);
+        height: 100%;
+        width: 0%; /* Controlado dinamicamente via JS */
+        border-radius: 100px;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Alinhamento do percentual e textos de status inferior */
+      .progress-status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: 500;
       }
 
       .loading-msg {
-        margin-top: 15px;
-        font-size: 18px;
-        font-weight: 500;
+        color: #64748b;
+        transition: all 0.2s ease;
+      }
+
+      .spinner-text {
+        color: #4f46e5;
+        font-weight: 600;
+      }
+
+      /* Animação do ícone */
+      @keyframes pulse-sutil {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.06);
+          opacity: 0.9;
+        }
       }
     </style>
 
     <!-- Adicione esta estrutura da animação logo aqui, antes do <main> -->
+    <!-- Nova Estrutura de Carregamento Avançada -->
     <div id="loadingOverlay" class="loading-overlay">
-      <div class="spinner-container">
-        <div class="spinner-circle"></div>
-        <div id="progressText" class="spinner-text">0%</div>
+      <div class="progress-card">
+        <div class="progress-card-icon">
+          <i class="fa-solid fa-arrows-spin fa-spin"></i>
+        </div>
+        <h3>Analisando Dados</h3>
+
+        <div class="progress-bar-wrapper">
+          <div id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+
+        <div class="progress-status-row">
+          <span id="loadingMsg" class="loading-msg"
+            >Lendo arquivos anexados...</span
+          >
+          <span id="progressText" class="spinner-text">0%</span>
+        </div>
       </div>
-      <div class="loading-msg">Processando arquivos no servidor...</div>
     </div>
-    <main class="main">
+
+    <!-- Importante: certifique-se de que este link de ícones está no seu <head> -->
+    <link rel="stylesheet" href="https://cloudflare.com" />
+
+    <main class="main main-upload">
       <section class="upload-section">
-        <h1>Comparar Chaves de Acesso</h1>
+        <div class="upload-icon-header">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <h1>Conferência de Notas Fiscais</h1>
+        <p class="upload-subtitle">
+          Faça a conferência cruzada entre seus relatórios de forma
+          automatizada.
+        </p>
+
         <form id="uploadForm">
+          <!-- DROPZONE EXCEL -->
           <div class="input-group">
-            <label for="excelFile">Arquivo Excel:</label>
-            <input
-              type="file"
-              name="excelFile"
-              id="excelFile"
-              accept=".xls,.xlsx,.csv,.txt"
-              required=""
-            />
+            <span class="label-title">Relatório Excel</span>
+            <label for="excelFile" class="custom-dropzone" id="dropzoneExcel">
+              <div class="dropzone-content">
+                <i
+                  class="fa-regular fa-file-excel dropzone-icon icon-excel"
+                ></i>
+                <p class="dropzone-text">
+                  Arraste ou <span class="highlight">procure</span> o arquivo
+                  Excel
+                </p>
+                <span class="label-desc"
+                  >Formatos: .xls, .xlsx, .csv, .txt</span
+                >
+              </div>
+              <input
+                type="file"
+                name="excelFile"
+                id="excelFile"
+                accept=".xls,.xlsx,.csv,.txt"
+                required=""
+              />
+            </label>
           </div>
 
+          <!-- DROPZONE PDF -->
           <div class="input-group">
-            <label for="pdfFile">Arquivo PDF:</label>
-            <input
-              type="file"
-              name="pdfFile"
-              id="pdfFile"
-              accept=".pdf"
-              required
-            />
+            <span class="label-title">Relatório PDF</span>
+            <label for="pdfFile" class="custom-dropzone" id="dropzonePdf">
+              <div class="dropzone-content">
+                <i class="fa-regular fa-file-pdf dropzone-icon icon-pdf"></i>
+                <p class="dropzone-text">
+                  Arraste ou <span class="highlight">procure</span> o arquivo
+                  PDF
+                </p>
+                <span class="label-desc">Formatos: apenas arquivos .pdf</span>
+              </div>
+              <input
+                type="file"
+                name="pdfFile"
+                id="pdfFile"
+                accept=".pdf"
+                required=""
+              />
+            </label>
           </div>
 
-          <button type="submit" id="submitBtn">Enviar e Comparar</button>
+          <button type="submit" id="submitBtn">
+            <span>Iniciar Comparação</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </form>
       </section>
     </main>
 
     <script>
+      // Função interna para gerenciar a interface dos Dropzones interativos
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const overlay = document.getElementById("loadingOverlay");
+          const progressText = document.getElementById("progressText");
+          const progressBarFill = document.getElementById("progressBarFill");
+          const loadingMsg = document.getElementById("loadingMsg");
+          const submitBtn = document.getElementById("submitBtn");
+          const formData = new FormData(e.target);
+
+          // Inicia estados de carregamento
+          overlay.style.display = "flex";
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = "0.5";
+
+          // Frases que mudam com base no progresso para simular inteligência
+          const etapas = [
+            { limite: 25, texto: "Lendo estruturas das tabelas..." },
+            { limite: 55, texto: "Mapeando chaves de acesso no PDF..." },
+            { limite: 75, texto: "Cruzando dados comerciais..." },
+            { limite: 90, texto: "Validando integridade dos status..." },
+          ];
+
+          let progresso = 0;
+          const timerProgress = setInterval(() => {
+            if (progresso < 90) {
+              progresso += Math.floor(Math.random() * 8) + 2;
+              if (progresso > 90) progresso = 90;
+
+              // Atualiza a barra visual e o texto percentual
+              progressText.innerText = progresso + "%";
+              progressBarFill.style.width = progresso + "%";
+
+              // Altera a legenda dinamicamente conforme avança
+              const etapaAtual = etapas.find((e) => progresso <= e.limite);
+              if (etapaAtual) {
+                loadingMsg.innerText = etapaAtual.texto;
+              }
+            }
+          }, 350);
+
+          try {
+            const res = await fetch(`${backendUrl}/api/upload`, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!res.ok) throw new Error("Erro no upload");
+
+            const data = await res.json();
+            localStorage.setItem("resultadoComparacao", JSON.stringify(data));
+
+            // Conclusão imediata da barra ao receber a resposta com sucesso
+            clearInterval(timerProgress);
+            loadingMsg.innerText = "Comparação concluída!";
+            progressText.innerText = "100%";
+            progressBarFill.style.width = "100%";
+
+            setTimeout(() => {
+              window.location.href = "nfe.html";
+            }, 600);
+          } catch (err) {
+            clearInterval(timerProgress);
+            overlay.style.display = "none";
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = "1";
+            alert("Erro ao processar arquivos: " + err.message);
+          }
+        });
+
       const backendUrl = ""; // Mantido dinâmico para rodar local e no Render
 
       console.log("Backend URL atual:", backendUrl);
