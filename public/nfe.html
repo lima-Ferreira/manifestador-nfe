@@ -76,11 +76,6 @@
     <script>
       const backendUrl = "http://localhost:8080";
 
-      console.log(
-        "resultadoComparacao:",
-        localStorage.getItem("resultadoComparacao"),
-      );
-
       const resultado = JSON.parse(
         localStorage.getItem("resultadoComparacao") || "{}",
       );
@@ -186,23 +181,31 @@
           notasOrdenadas.forEach((item) => {
             const dataFormatada = padronizarData(item.dataTempo);
             const status = item.recebida ? "✅ RECEBIDA" : "⚠️ PENDENTE";
-            const classeLinha = item.recebida
-              ? "linha-recebida"
-              : "linha-pendente";
+
+            const situacao = (item.autorizacao || "").toLowerCase().trim();
+
+            let classeLinha = "";
+            if (situacao === "cancelado") {
+              classeLinha = "linha-cancelada";
+            } else if (item.recebida) {
+              classeLinha = "linha-recebida";
+            } else {
+              classeLinha = "linha-pendente";
+            }
 
             tableHTML += `
-         <tr class="${classeLinha}">
-            <td><input type="checkbox" class="checkbox-nota" data-chave="${item.chave}"></td>
-            <td><strong>${status}</strong></td> 
-            <td>${dataFormatada}</td>
-            <td>${item.uf || ""}</td>
-            <td>${item.numDoc || ""}</td>
-            <td>${item.chave || ""}</td>
-            <td>${item.fornecedor || ""}</td>
-            <td>${item.autorizacao || ""}</td>
-            <td>${item.valorDoDoc || ""}</td>
-          </tr>
-      `;
+    <tr class="${classeLinha}">
+      <td><input type="checkbox" class="checkbox-nota" data-chave="${item.chave}"></td>
+      <td><strong>${status}</strong></td> 
+      <td>${dataFormatada}</td>
+      <td>${item.uf || ""}</td>
+      <td>${item.numDoc || ""}</td>
+      <td>${item.chave || ""}</td>
+      <td>${item.fornecedor || ""}</td>
+      <td>${item.autorizacao || ""}</td>
+      <td>${item.valorDoDoc || ""}</td>
+    </tr>
+  `;
           });
 
           tableHTML += `
@@ -354,12 +357,6 @@
       }
 
       document
-        .getElementById("btnCancelarModal")
-        .addEventListener("click", () => {
-          document.getElementById("modalManifestacao").style.display = "none";
-        });
-
-      document
         .getElementById("btnConfirmarModal")
         .addEventListener("click", async () => {
           const evento = document.querySelector('input[name="evento"]:checked');
@@ -381,19 +378,27 @@
               }),
             });
 
-            const resultado = await response.json();
+            const texto = await response.text();
+            console.log("RESPOSTA BRUTA DO BACKEND:", texto);
 
-            if (!response.ok) {
-              throw new Error(resultado.erro);
+            let resultado;
+            try {
+              resultado = JSON.parse(texto);
+            } catch {
+              throw new Error(`Resposta inválida do backend: ${texto}`);
             }
 
-            alert(resultado.mensagem);
+            if (!response.ok) {
+              throw new Error(
+                resultado.erro || "Erro desconhecido no backend.",
+              );
+            }
 
+            alert(resultado.mensagem || "Manifestação processada com sucesso.");
             document.getElementById("modalManifestacao").style.display = "none";
           } catch (err) {
-            console.error(err);
-
-            alert("Erro: " + err.message);
+            console.error("ERRO NO FRONT:", err);
+            alert("Erro: " + (err.message || "Falha ao manifestar."));
           }
         });
     </script>

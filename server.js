@@ -1,14 +1,14 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import { fileUpload } from "./files-uploads/file.js";
 import { extractExcelData } from "./services/excelService.js";
 import { extractPdfChavesAsync } from "./services/pdfServices.js";
-import ExcelJS from "exceljs";
-import path from "path";
-import { fileURLToPath } from "url";
+
 import { carregarCertificado } from "./certificados/certificado.js";
 import { assinarXml } from "./services/xmlSigner.js";
-// INTEGRADO: Novo cliente de envio SEFAZ
 import { enviarManifestoSefaz } from "./services/sefazClient.js";
 
 const app = express();
@@ -31,10 +31,10 @@ app.use(express.static(path.join(__dirname, "public")));
 // ===============================
 // CARREGAMENTO DO CERTIFICADO DIGITAL
 // ===============================
-const cert = carregarCertificado(
-  "./certificados/cert_jo_de_lima.pfx",
-  "123456",
-);
+const PFX_PATH = "./certificados/cert_jo_de_lima.pfx";
+const PFX_PASS = "123456";
+
+const cert = carregarCertificado(PFX_PATH, PFX_PASS);
 
 console.log("🔒 CERTIFICADO CONFIGURADO COM SUCESSO");
 console.log("KEY OK:", !!cert.keyPem);
@@ -79,146 +79,188 @@ app.post(
     }
   },
 );
+// ==========================================
+// FUNÇÕES AUXILIARES DE SUPORTE AO MANIFESTO
+// ==========================================
+function normalizarCodigoEvento(evento) {
+  const mapa = {
+    ciencia: "210210",
+    confirmacao: "210200",
+    desconhecimento: "210220",
+    nao_realizada: "210240",
+    210210: "210210",
+    210200: "210200",
+    210220: "210220",
+    210240: "210240",
+  };
+  return mapa[evento] || "";
+}
 
-// ===============================
-// DOWNLOAD EXCEL
-// ===============================
-app.post("/api/download-excel", async (req, res) => {
-  try {
-    const { chavesFaltando } = req.body;
+function obterDescricaoEvento(tpEvento) {
+  const mapa = {
+    210200: "Confirmacao da Operacao",
+    210210: "Ciencia da Operacao",
+    210220: "Desconhecimento da Operacao",
+    210240: "Operacao nao Realizada",
+  };
+  return mapa[tpEvento] || "";
+}
 
-    if (!Array.isArray(chavesFaltando) || chavesFaltando.length === 0) {
-      return res.status(400).json({ error: "Nenhuma chave fornecida." });
-    }
+function gerarDhEvento() {
+  const agora = new Date();
+  const yyyy = agora.getFullYear();
+  const mm = String(agora.getMonth() + 1).padStart(2, "0");
+  const dd = String(agora.getDate()).padStart(2, "0");
+  const hh = String(agora.getHours()).padStart(2, "0");
+  const mi = String(agora.getMinutes()).padStart(2, "0");
+  const ss = String(agora.getSeconds()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}-03:00`;
+}
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Chaves Faltando");
-
-    worksheet.columns = [
-      { header: "Data", key: "dataTempo", width: 15 },
-      { header: "UF", key: "uf", width: 5 },
-      { header: "Documento", key: "numDoc", width: 15 },
-      { header: "Chave", key: "chave", width: 45 },
-      { header: "Fornecedor", key: "fornecedor", width: 30 },
-      { header: "Situação", key: "autorizacao", width: 15 },
-      { header: "Valor", key: "valorDoDoc", width: 15 },
-    ];
-
-    worksheet.getRow(1).font = { bold: true };
-
-    chavesFaltando.forEach((item) => {
-      const row = worksheet.addRow(item);
-
-      if (item.autorizacao?.toLowerCase() === "cancelado") {
-        row.eachCell((cell) => {
-          cell.font = { color: { argb: "FFFF0000" } };
-        });
-      }
-    });
-
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
-
-    res.setHeader(
-      "Content-Disposition",
-      'attachment; filename="chaves_faltando.xlsx"',
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
-  } catch (err) {
-    console.error("Erro ao gerar Excel:", err);
-    res.status(500).json({ error: "Erro ao gerar Excel." });
-  }
-});
-
-// ===============================
-// MANIFESTAÇÃO (INTEGRADA COM ASSINATURA E SEFAZ)
-// ===============================
+// =======================================================
+// MANIFESTAÇÃO (BLINDAGEM TOTAL DE DNS COM AXIOS NATIVO)
+// =======================================================
+// =======================================================
+// MANIFESTAÇÃO (AJUSTE DOS ÍNDICES DO DOM E ENVIO AXIOS)
+// =======================================================
+// =======================================================
+// MANIFESTAÇÃO (ASSINATURA TEXTUAL BLINDADA E ENVIO POR IP)
+// =======================================================
 app.post("/api/manifestar", async (req, res) => {
   try {
+    console.log("========== /api/manifestar ==========");
+    console.log("BODY RECEBIDO:", JSON.stringify(req.body, null, 2));
+
     const { evento, chaves } = req.body;
 
     if (!evento) {
-      return res
-        .status(400)
-        .json({ sucesso: false, erro: "Evento não informado." });
-    }
-
-    if (!Array.isArray(chaves) || chaves.length === 0) {
-      return res
-        .status(400)
-        .json({ sucesso: false, erro: "Nenhuma chave selecionada." });
-    }
-
-    console.log(
-      `🚀 PROCESSANDO MANIFESTAÇÃO: ${evento} para ${chaves.length} notas.`,
-    );
-
-    const resultados = [];
-
-    // Processa uma chave por vez gerando o XML individual exigido pela SEFAZ
-    for (const nota of chaves) {
-      const chaveNfe = nota.chave;
-      const cnpjEmpresa = nota.cnpj || "12345678000100"; // Fallback ou pegue do req.body se disponível
-      const dataIso = new Date().toISOString().replace(/\.\d+Z$/, "-03:00"); // Data atual no fuso do Brasil
-
-      // Gerador ID padrão SEFAZ: "ID" + tpEvento + chaveNfe + nSeqEvento (01)
-      const idSign = `ID${evento}${chaveNfe}01`;
-
-      // 1. Monta o XML bruto estrutural dinâmico da manifestação
-      const xmlBruto =
-        `<envEvento xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.00">` +
-        `<idLote>1</idLote>` +
-        `<evento versao="1.00">` +
-        `<infEvento Id="${idSign}">` +
-        `<cOrgao>91</cOrgao>` + // 91 é o Ambiente Nacional
-        `<tpAmb>2</tpAmb>` + // 2 = Homologação (Testes), mude para 1 para Produção
-        `<CNPJ>${cnpjEmpresa}</CNPJ>` +
-        `<chNFe>${chaveNfe}</chNFe>` +
-        `<dhEvento>${dataIso}</dhEvento>` +
-        `<tpEvento>${evento}</tpEvento>` + // Ex: 210210 (Ciência)
-        `<nSeqEvento>1</nSeqEvento>` +
-        `<detEvento versao="1.00">` +
-        `<descEvento>${nota.descEvento || "Ciencia da Operacao"}</descEvento>` +
-        `</detEvento>` +
-        `</infEvento>` +
-        `</evento>` +
-        `</envEvento>`;
-
-      // 2. Executa a Assinatura Criptográfica Nativa
-      const xmlAssinado = assinarXml(xmlBruto, cert.keyPem, cert.certPem);
-
-      // 3. Envia o lote assinado para o Web Service da SEFAZ via HTTP/SOAP
-      const respostaSefazXml = await enviarManifestoSefaz(
-        xmlAssinado,
-        cert.keyPem,
-        cert.certPem,
-      );
-
-      resultados.push({
-        chave: chaveNfe,
-        status: "Processado",
-        retornoSefaz: respostaSefazXml,
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Evento não informado.",
       });
     }
 
-    // 4. Retorna a lista de notas manifestadas com as respostas do governo
-    res.json({
+    if (!Array.isArray(chaves) || chaves.length === 0) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Nenhuma chave selecionada.",
+      });
+    }
+
+    const tpEvento = normalizarCodigoEvento(evento);
+    if (!tpEvento) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: `Evento inválido: ${evento}`,
+      });
+    }
+
+    const descEvento = obterDescricaoEvento(tpEvento);
+    if (!descEvento) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Descrição do evento não encontrada.",
+      });
+    }
+
+    const resultados = [];
+
+    for (const nota of chaves) {
+      console.log("----- NOTA RECEBIDA -----");
+
+      const chaveNfe = typeof nota === "string" ? nota : nota?.chave;
+
+      const cnpjEmpresa =
+        typeof nota === "object" && nota?.cnpj
+          ? nota.cnpj.replace(/\D/g, "")
+          : "07870381000109";
+
+      if (!chaveNfe) {
+        resultados.push({
+          chave: null,
+          status: "Erro",
+          retornoSefaz: "Chave da NFe não informada.",
+        });
+        continue;
+      }
+
+      try {
+        console.log(`Step 1: Montando XML base da chave ${chaveNfe}...`);
+
+        const idLote = String(1).padStart(15, "0");
+        const dataIso = gerarDhEvento();
+        const idSign = `ID${tpEvento}${chaveNfe}01`;
+
+        const xmlBase =
+          `<envEvento xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.00">` +
+          `<idLote>${idLote}</idLote>` +
+          `<evento versao="1.00">` +
+          `<infEvento Id="${idSign}">` +
+          `<cOrgao>91</cOrgao>` +
+          `<tpAmb>2</tpAmb>` +
+          `<CNPJ>${cnpjEmpresa}</CNPJ>` +
+          `<chNFe>${chaveNfe}</chNFe>` +
+          `<dhEvento>${dataIso}</dhEvento>` +
+          `<tpEvento>${tpEvento}</tpEvento>` +
+          `<nSeqEvento>1</nSeqEvento>` +
+          `<verEvento>1.00</verEvento>` +
+          `<detEvento versao="1.00">` +
+          `<descEvento>${descEvento}</descEvento>` +
+          `</detEvento>` +
+          `</infEvento>` +
+          `</evento>` +
+          `</envEvento>`;
+
+        console.log("===== XML BASE =====");
+        console.log(xmlBase);
+
+        console.log("Step 2: Assinando XML...");
+        const xmlAssinado = assinarXml(xmlBase, cert.keyPem, cert.certPem);
+
+        console.log("===== XML ASSINADO =====");
+        console.log(xmlAssinado);
+
+        console.log("Step 3: Enviando XML assinado para a SEFAZ...");
+        const respostaSefaz = await enviarManifestoSefaz(xmlAssinado, {
+          pfxPath: PFX_PATH,
+          passphrase: PFX_PASS,
+        });
+
+        resultados.push({
+          chave: chaveNfe,
+          status: respostaSefaz.statusCode === 200 ? "Processado" : "Erro",
+          retornoSefaz: respostaSefaz.data,
+          statusCode: respostaSefaz.statusCode,
+        });
+      } catch (errNota) {
+        console.error(`❌ Erro ao processar a chave ${chaveNfe}:`, errNota);
+
+        resultados.push({
+          chave: chaveNfe,
+          status: "Erro",
+          retornoSefaz:
+            errNota.message || "Erro interno ao processar manifestação.",
+        });
+      }
+    }
+
+    return res.json({
       sucesso: true,
       quantidade: chaves.length,
       resultados,
     });
   } catch (error) {
-    console.error("❌ Erro na rota de manifestação:", error);
-    res.status(500).json({
+    console.error("❌ Erro geral no endpoint /api/manifestar:", error);
+
+    return res.status(500).json({
       sucesso: false,
-      erro: error.message,
+      erro: error.message || "Erro interno no servidor.",
     });
   }
 });
 
+// Inicialização estável da porta do servidor Express
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Servidor rodando na porta http://localhost:${PORT}`),
+);

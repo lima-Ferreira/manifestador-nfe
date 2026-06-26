@@ -432,3 +432,12 @@ header h1 {
 #btnConfirmarModal:hover {
   background: #4338ca;
 }
+
+.linha-cancelada {
+  background-color: #ffe5e5 !important;
+}
+
+.linha-cancelada td {
+  color: #b30000;
+  font-weight: 600;
+}

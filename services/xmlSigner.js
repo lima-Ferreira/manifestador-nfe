@@ -1,89 +1,105 @@
 import crypto from "crypto";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 
-export function assinarXml(xmlString, privateKeyPem, certPem) {
-  if (!privateKeyPem) {
-    throw new Error("Chave privada não recebida");
-  }
+function removerDeclaracaoXml(xml) {
+  return xml.replace(/^<\?xml[^>]*\?>\s*/i, "").trim();
+}
 
-  // 1. Faz o Parser do XML para podermos manipular os nós do DOM
+function normalizarXml(xml) {
+  return xml.replace(/\r?\n/g, "").replace(/>\s+</g, "><").trim();
+}
+
+export function assinarXml(xml, keyPem, certPem) {
+  if (!xml) throw new Error("XML não informado.");
+  if (!keyPem) throw new Error("Chave privada não informada.");
+  if (!certPem) throw new Error("Certificado não informado.");
+
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  const serializer = new XMLSerializer();
 
-  // 2. Encontra a tag infEvento (alvo da assinatura da SEFAZ)
+  const xmlDoc = parser.parseFromString(normalizarXml(xml), "text/xml");
+
   const infEvento = xmlDoc.getElementsByTagName("infEvento")[0];
-  if (!infEvento) {
-    throw new Error("Elemento <infEvento> não encontrado no XML.");
+
+  if (!infEvento) throw new Error("Elemento <infEvento> não encontrado.");
+
+  const id = infEvento.getAttribute("Id");
+
+  if (!id) throw new Error("Id do infEvento não encontrado.");
+
+  const evento = xmlDoc.getElementsByTagName("evento")[0];
+
+  if (!evento) throw new Error("Elemento <evento> não encontrado.");
+
+  // Remove assinatura anterior caso exista
+  const signatures = evento.getElementsByTagName("Signature");
+
+  if (signatures.length) {
+    evento.removeChild(signatures[0]);
   }
 
-  // 3. Pega o ID do evento para usar na referência (ex: Id="ID110111...")
-  const idElemento = infEvento.getAttribute("Id") || "";
-  const uriReferencia = idElemento ? `#${idElemento}` : "";
+  let infEventoXml = serializer.serializeToString(infEvento);
 
-  // 4. Limpa as quebras de linha do certificado digital para a tag X509Certificate
-  const certLimpo = certPem
+  infEventoXml = removerDeclaracaoXml(normalizarXml(infEventoXml));
+
+  // Remove namespace herdado para cálculo correto do Digest
+  infEventoXml = infEventoXml.replace(
+    ' xmlns="http://www.portalfiscal.inf.br/nfe"',
+    "",
+  );
+
+  const digestValue = crypto
+    .createHash("sha1")
+    .update(infEventoXml, "utf8")
+    .digest("base64");
+
+  const XMLDSIG = "http://www.w3.org/2000/09/xmldsig#";
+  const C14N = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
+  const RSA = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+  const ENV = "http://www.w3.org/2000/09/xmldsig#enveloped-signature";
+  const SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
+
+  const signedInfo =
+    `<SignedInfo xmlns="${XMLDSIG}">` +
+    `<CanonicalizationMethod Algorithm="${C14N}"/>` +
+    `<SignatureMethod Algorithm="${RSA}"/>` +
+    `<Reference URI="#${id}">` +
+    `<Transforms>` +
+    `<Transform Algorithm="${ENV}"/>` +
+    `<Transform Algorithm="${C14N}"/>` +
+    `</Transforms>` +
+    `<DigestMethod Algorithm="${SHA1}"/>` +
+    `<DigestValue>${digestValue}</DigestValue>` +
+    `</Reference>` +
+    `</SignedInfo>`;
+
+  const signer = crypto.createSign("RSA-SHA1");
+
+  signer.update(signedInfo, "utf8");
+  signer.end();
+
+  const signatureValue = signer.sign(keyPem, "base64");
+
+  const certificado = certPem
     .replace(/-----BEGIN CERTIFICATE-----/g, "")
     .replace(/-----END CERTIFICATE-----/g, "")
     .replace(/\r?\n/g, "")
     .trim();
 
-  // 5. C14N - Canonicalização simplificada do nó infEvento para gerar o Digest correto
-  const serializer = new XMLSerializer();
-  const infEventoContido = serializer.serializeToString(infEvento);
-
-  // 6. Gera o DigestValue usando SHA-1 baseado no conteúdo da tag infEvento
-  const hash = crypto.createHash("sha1");
-  hash.update(infEventoContido, "utf8");
-  const digestValue = hash.digest("base64");
-
-  // 7. Monta a estrutura da tag <SignedInfo> exatamente como a SEFAZ exige
-  const signedInfoXml =
-    `<SignedInfo xmlns="http://w3.org">` +
-    `<CanonicalizationMethod Algorithm="http://w3.org"/>` +
-    `<SignatureMethod Algorithm="http://w3.orgrsa-sha1"/>` +
-    `<Reference URI="${uriReferencia}">` +
-    `<Transforms>` +
-    `<Transform Algorithm="http://w3.orgenveloped-signature"/>` +
-    `<Transform Algorithm="http://w3.org"/>` +
-    `</Transforms>` +
-    `<DigestMethod Algorithm="http://w3.orgsha1"/>` +
-    `<DigestValue>${digestValue}</DigestValue>` +
-    `</Reference>` +
-    `</SignedInfo>`;
-
-  // 8. Gera o SignatureValue criptografando o bloco <SignedInfo> com a sua chave privada RSA-SHA1
-  const signer = crypto.createSign("RSA-SHA1");
-  signer.update(signedInfoXml, "utf8");
-  const signatureValue = signer.sign(privateKeyPem.trim(), "base64");
-
-  // 9. Monta o bloco completo da assinatura estruturada (<Signature>)
-  const signatureXmlString =
-    `<Signature xmlns="http://w3.org">` +
-    signedInfoXml +
+  const signatureXml =
+    `<Signature xmlns="${XMLDSIG}">` +
+    signedInfo +
     `<SignatureValue>${signatureValue}</SignatureValue>` +
     `<KeyInfo>` +
     `<X509Data>` +
-    `<X509Certificate>${certLimpo}</X509Certificate>` +
+    `<X509Certificate>${certificado}</X509Certificate>` +
     `</X509Data>` +
     `</KeyInfo>` +
     `</Signature>`;
 
-  // 10. Injeta o bloco <Signature> dentro do nó pai do evento fiscal
-  const signatureDoc = parser.parseFromString(signatureXmlString, "text/xml");
-  const signatureNode = xmlDoc.importNode(signatureDoc.documentElement, true);
+  const signatureDoc = parser.parseFromString(signatureXml, "text/xml");
 
-  // O evento padrão da SEFAZ exige que a assinatura fique dentro da tag raiz do evento
-  xmlDoc.documentElement.appendChild(signatureNode);
+  evento.appendChild(xmlDoc.importNode(signatureDoc.documentElement, true));
 
-  // Retorna o XML final totalmente assinado em formato String
-  return; // ❌ ANTES ESTAVA ASSIM:
-  // return serializer.serializeToString(xmlDoc);
-
-  // 🌟 ALTERE PARA FICAR EXATAMENTE ASSIM:
-  // Força a correção da string quebrada gerada pelo DOMParser antes de retornar
-  const xmlFinalString = serializer.serializeToString(xmlDoc);
-  return xmlFinalString.replace(
-    /xmlns="http:\/\/w3\.org"/g,
-    'xmlns="http://w3.org"',
-  );
+  return normalizarXml(serializer.serializeToString(xmlDoc));
 }
